@@ -1,0 +1,3 @@
+rm *.mp4
+rm *.avi
+rm *.log
