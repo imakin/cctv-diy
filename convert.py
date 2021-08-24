@@ -16,7 +16,7 @@ with open("list.txt") as f:
   mergename = list[0].split(".")[0]+list10.split("T")[1]
   if len(list)>=MERGEAMOUNT:
     print(f"merge {MERGEAMOUNT} small vids {mergename}")
-    subprocess.check_output(f"ffmpeg -f concat -safe 0 -i list.txt -c copy vid/{mergename}"
+    subprocess.check_output(f"ffmpeg -f concat -safe 0 -i list.txt -c copy vid/{mergename}")
     print("done merge, deleting unmerged files")
     for l in list:
       filename = l[len("file "):] #LINEFORMAT
