@@ -27,7 +27,7 @@ class Main(object):
   def main(self):
     font = cv2.FONT_HERSHEY_SIMPLEX
     FPS = 30
-    SEGMENTLENGTH = 1 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
+    SEGMENTLENGTH = 5 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
     segmentlength_frames = SEGMENTLENGTH*60*FPS
     WIDTH = 640
     HEIGHT = 480
