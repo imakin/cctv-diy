@@ -27,7 +27,7 @@ class Main(object):
   def main(self):
     font = cv2.FONT_HERSHEY_SIMPLEX
     FPS = 30
-    SEGMENTLENGTH = 5 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
+    SEGMENTLENGTH = 2 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
     segmentlength_frames = SEGMENTLENGTH*60*FPS
     WIDTH = 640
     HEIGHT = 480
@@ -101,7 +101,7 @@ class Main(object):
                 img = lastimg
             lastimg = img
           else: #not idle
-            cv2.putText(frame,f"{timestamp}",(50,50),font,1,(0,255,255),2,cv2.LINE_4)
+            cv2.putText(frame,get_timestamp(),(50,50),font,1,(0,255,255),2,cv2.LINE_4)
             writer.write(frame)
             framecount += 1
           #time.sleep(2/FPS) #to self.capture the same frame amount for longer record time, (N/FPS) result in N times fastforward video
