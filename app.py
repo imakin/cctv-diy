@@ -7,8 +7,26 @@ import os
 import sys
 import subprocess
 import traceback
+import serial
 
 from vid import serve
+
+OLED_DISPLAY = False
+ser = None
+try:
+    if sys.argv[1]=="oled":
+        OLED_DISPLAY = True
+        ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+except:
+    print("argument 'oled' to enable oled display")
+
+OLED_MSG_HEAD = " "
+def display(text):
+    print(text)
+    if OLED_DISPLAY:
+        text = OLED_MSG_HEAD+text
+        if text[-1]!="\n": text+="\n"
+        ser.write(text.encode('utf8'))
 
 def get_timestamp():
   return re.findall("([\d\-T\:]+)", datetime.datetime.now().isoformat() )[0].replace(":","-")
@@ -26,6 +44,10 @@ class Main(object):
       traceback.print_exc()
       self.cap.release()
       cv2.destroyAllWindows()
+      try:
+          ser.close()
+          display("serial closed")
+      except:pass
 
   def main(self):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -45,16 +67,16 @@ class Main(object):
     height= int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     self.cap.set(cv2.CAP_PROP_FPS, FPS)
     FPS = self.cap.get(cv2.CAP_PROP_FPS) #get the actual fps
-    print(width,height,FPS)
+    display("{},{},{}".format(width,height,FPS))
     #end of cap init
     
     firstloop = True
     framecount = 0
     while True:
-      print(framecount)
+      display(framecount)
       if framecount<segmentlength_frames and not(firstloop):
-        print(framecount)
-        print("something is not right, reinit cv2.VideoCapture")
+        display(framecount)
+        display("something is not right, reinit cv2.VideoCapture")
         time.sleep(10)
         #cap init
         self.cap = cv2.VideoCapture(-1)
@@ -66,12 +88,12 @@ class Main(object):
         height= int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.cap.set(cv2.CAP_PROP_FPS, FPS)
         FPS = self.cap.get(cv2.CAP_PROP_FPS) #get the actual fps
-        print(width,height,FPS)
+        display("{},{},{}".format(width,height,FPS))
         #end of cap init
       framecount = 0
       firstloop = False
       timestamp  = get_timestamp()
-      print(f"{timestamp}")
+      display(f"{timestamp}")
       try:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v') #.mp4
         fourcc = cv2.VideoWriter_fourcc(*'MJPG') #.avi
@@ -92,10 +114,10 @@ class Main(object):
             img = cv2.calcHist([img], [0], None, [32], [0,256])
             if (lastimg is not None):
               d = cv2.compareHist(img,lastimg, cv2.HISTCMP_CORREL)
-              print(d)
+              display(d)
               if d<0.998 and idle_sampling<=0: #start recording only when detect movement
                 idle = False
-                print("movement detected, start recording")
+                display("movement detected, start recording")
                 timestamp = get_timestamp() #start timestamp
                 cv2.putText(frame,timestamp,(50,50),font,1,(0,255,255),2,cv2.LINE_4)
                 cv2.imwrite(f"{filename}.png",frame)
@@ -116,7 +138,7 @@ class Main(object):
         subprocess.check_output(f"nohup python3 convert.py {filename}  > /dev/null 2>&1 &",shell=True)
       except cv2.error as e:
         #ramutu ramungkin, cv2 print warning bukan throw exception
-        print(e)
+        display(e)
         traceback.print_exc()
         raise Exception("wagu")
       #end of one segment video
@@ -125,3 +147,4 @@ class Main(object):
 
 if __name__=="__main__":
   app = Main()
+    
