@@ -1,0 +1,2 @@
+find . -type f -size 0 -name "*.avi" -delete
+find . -type f -size 0 -name "*.mp4" -delete

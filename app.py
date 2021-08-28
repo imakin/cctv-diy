@@ -13,6 +13,9 @@ from vid import serve
 def get_timestamp():
   return re.findall("([\d\-T\:]+)", datetime.datetime.now().isoformat() )[0].replace(":","-")
 
+def get_video():
+  os.listdir("/dev/")
+
 BASE_DIR = os.path.dirname( os.path.realpath(sys.argv[0]) )
 VID_DIR = f"{BASE_DIR}/vid"
 class Main(object):
@@ -72,7 +75,7 @@ class Main(object):
       try:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v') #.mp4
         fourcc = cv2.VideoWriter_fourcc(*'MJPG') #.avi
-        filename = f'{VID_DIR}/{timestamp}-{FPS}.avi'
+        filename = f'{VID_DIR}/{timestamp}.avi'
         writer= cv2.VideoWriter(filename, fourcc, FPS, (width,height))
         lastimg = None
         idle = True
@@ -93,6 +96,8 @@ class Main(object):
               if d<0.998 and idle_sampling<=0: #start recording only when detect movement
                 idle = False
                 print("movement detected, start recording")
+                timestamp = get_timestamp() #start timestamp
+                cv2.putText(frame,timestamp,(50,50),font,1,(0,255,255),2,cv2.LINE_4)
                 cv2.imwrite(f"{filename}.png",frame)
                 idle_sampling = idle_limit
               if d<0.998 and idle_sampling>0:
@@ -101,7 +106,7 @@ class Main(object):
                 img = lastimg
             lastimg = img
           else: #not idle
-            cv2.putText(frame,get_timestamp(),(50,50),font,1,(0,255,255),2,cv2.LINE_4)
+            cv2.putText(frame,timestamp,(50,50),font,1,(0,255,255),2,cv2.LINE_4)
             writer.write(frame)
             framecount += 1
           #time.sleep(2/FPS) #to self.capture the same frame amount for longer record time, (N/FPS) result in N times fastforward video
