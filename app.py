@@ -24,7 +24,7 @@ OLED_MSG_HEAD = " "
 def display(text):
     print(text)
     if OLED_DISPLAY:
-        text = OLED_MSG_HEAD+text
+        text = OLED_MSG_HEAD+str(text)
         if text[-1]!="\n": text+="\n"
         ser.write(text.encode('utf8'))
 
@@ -128,7 +128,7 @@ class Main(object):
                 img = lastimg
             lastimg = img
           else: #not idle
-            cv2.putText(frame,timestamp,(50,50),font,1,(0,255,255),2,cv2.LINE_4)
+            cv2.putText(frame,get_timestamp(),(50,50),font,1,(0,255,255),2,cv2.LINE_4)
             writer.write(frame)
             framecount += 1
           #time.sleep(2/FPS) #to self.capture the same frame amount for longer record time, (N/FPS) result in N times fastforward video
