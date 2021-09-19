@@ -1,3 +1,3 @@
 pip3 install opencv-python
-sudo apt-get install h264enc
+sudo apt-get install ffmpeg h264enc
 
