@@ -2,10 +2,18 @@
 import traceback
 import subprocess
 import os,sys
+is_windows = False
+try:
+  os.environ['WINDIR']
+  is_windows = True
+except:pass
+
 MERGEAMOUNT = 10
 filename = sys.argv[1] #a fullpath
 try:
-  subprocess.check_output(f"ffmpeg -i {filename} -vcodec libx265 -crf 28 {filename}.x265.mp4 > converting.log 2>&1",shell=True)
+  cmd = f"""ffmpeg -i "{filename}" -vcodec libx265 -crf 28 "{filename}.x265.mp4" > converting.log 2>&1"""
+  print(cmd)
+  subprocess.check_output(cmd,shell=True)
 
   #os.rename(f"{filename}.log", "/tmp/"+os.path.basename(f"{filename}.log"))
   os.remove(filename)

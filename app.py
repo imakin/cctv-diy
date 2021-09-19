@@ -7,13 +7,20 @@ import os
 import sys
 import subprocess
 import traceback
-import serial
 
 from vid import serve
+
+is_windows = False
+try:
+  os.environ['WINDIR']
+  is_windows = True
+except:pass
+
 
 OLED_DISPLAY = False
 ser = None
 try:
+    import serial
     if sys.argv[1]=="oled":
         OLED_DISPLAY = True
         ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
@@ -31,11 +38,14 @@ def display(text):
 def get_timestamp():
   return re.findall("([\d\-T\:]+)", datetime.datetime.now().isoformat() )[0].replace(":","-")
 
-def get_video():
-  os.listdir("/dev/")
-
 BASE_DIR = os.path.dirname( os.path.realpath(sys.argv[0]) )
 VID_DIR = f"{BASE_DIR}/vid"
+if is_windows:
+    os.chdir(BASE_DIR)
+    VID_DIR = "./vid"
+CAP = -1
+if is_windows:
+  CAP = 0
 class Main(object):
   def __init__(self):
     try:
@@ -51,14 +61,18 @@ class Main(object):
 
   def main(self):
     font = cv2.FONT_HERSHEY_SIMPLEX
-    FPS = 30
-    SEGMENTLENGTH = 2 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
-    segmentlength_frames = SEGMENTLENGTH*60*FPS
     WIDTH = 640
     HEIGHT = 480
+    FPS = 30
+    if is_windows:
+      WIDTH = 1920
+      HEIGHT = 1080
+      FPS = 30
+    SEGMENTLENGTH = 2 #minutes, low performance would self.capture less and have fast forwarded video and segment length is getting longer
+    segmentlength_frames = SEGMENTLENGTH*60*FPS
     
     #cap init
-    self.cap = cv2.VideoCapture(-1)
+    self.cap = cv2.VideoCapture(CAP)
     self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,WIDTH)
     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,HEIGHT)
     #get the actual w.h
@@ -68,6 +82,7 @@ class Main(object):
     self.cap.set(cv2.CAP_PROP_FPS, FPS)
     FPS = self.cap.get(cv2.CAP_PROP_FPS) #get the actual fps
     display("{},{},{}".format(width,height,FPS))
+    segmentlength_frames = SEGMENTLENGTH*60*FPS
     #end of cap init
     
     firstloop = True
@@ -79,7 +94,7 @@ class Main(object):
         display("something is not right, reinit cv2.VideoCapture")
         time.sleep(10)
         #cap init
-        self.cap = cv2.VideoCapture(-1)
+        self.cap = cv2.VideoCapture(CAP)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,HEIGHT)
         #get the actual w.h
@@ -89,6 +104,7 @@ class Main(object):
         self.cap.set(cv2.CAP_PROP_FPS, FPS)
         FPS = self.cap.get(cv2.CAP_PROP_FPS) #get the actual fps
         display("{},{},{}".format(width,height,FPS))
+        segmentlength_frames = SEGMENTLENGTH*60*FPS
         #end of cap init
       framecount = 0
       firstloop = False
@@ -135,7 +151,10 @@ class Main(object):
           if (framecount>=segmentlength_frames):
             break
         writer.release()
-        subprocess.check_output(f"nohup python3 convert.py {filename}  > /dev/null 2>&1 &",shell=True)
+        if is_windows:
+            subprocess.check_output(f"python convert.py {filename}  > converting.txt  2>&1 &",shell=True)
+        else:
+            subprocess.check_output(f"nohup python3 convert.py {filename}  > /dev/null 2>&1 &",shell=True)
       except cv2.error as e:
         #ramutu ramungkin, cv2 print warning bukan throw exception
         display(e)
